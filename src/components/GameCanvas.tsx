@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import AuthButton from "./AuthButton";
 
 interface GameCanvasProps {
   onGameOver: (score: number) => void;
@@ -193,9 +194,12 @@ export default function GameCanvas({ onGameOver }: GameCanvasProps) {
             >
               Press SPACE to Start
             </button>
-            <p className="text-neon-purple text-lg font-mono text-center">
-              Connect Monad Games ID to save your scores globally
-            </p>
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-neon-purple text-lg font-mono text-center">
+                Connect Monad Games ID to save your scores globally
+              </p>
+              <AuthButton />
+            </div>
           </div>
         </div>
       </div>
