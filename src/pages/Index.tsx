@@ -1,13 +1,51 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+"use client";
+
+import { useState } from "react";
+import GameCanvas from "@/components/GameCanvas";
+import GameOver from "@/components/GameOver";
+import Leaderboard from "@/components/Leaderboard";
+
+type GameScreen = 'game' | 'gameOver' | 'leaderboard';
 
 const Index = () => {
+  const [currentScreen, setCurrentScreen] = useState<GameScreen>('game');
+  const [lastScore, setLastScore] = useState(0);
+
+  const handleGameOver = (score: number) => {
+    setLastScore(score);
+    setCurrentScreen('gameOver');
+  };
+
+  const handleRestart = () => {
+    setCurrentScreen('game');
+  };
+
+  const handleViewLeaderboard = () => {
+    setCurrentScreen('leaderboard');
+  };
+
+  const handleBackToGame = () => {
+    setCurrentScreen('game');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      {currentScreen === 'game' && (
+        <GameCanvas onGameOver={handleGameOver} />
+      )}
+      
+      {currentScreen === 'gameOver' && (
+        <GameOver 
+          score={lastScore}
+          onRestart={handleRestart}
+          onViewLeaderboard={handleViewLeaderboard}
+        />
+      )}
+      
+      {currentScreen === 'leaderboard' && (
+        <Leaderboard onBackToGame={handleBackToGame} />
+      )}
+    </>
   );
 };
 

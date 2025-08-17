@@ -2,57 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* Neon Drift Runner - Cyberpunk Design System 
+All colors MUST be HSL for perfect theme consistency.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Cyberpunk Dark Theme */
+    --background: 240 10% 4%;
+    --foreground: 180 100% 90%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 240 8% 8%;
+    --card-foreground: 180 100% 90%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 240 8% 8%;
+    --popover-foreground: 180 100% 90%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 300 100% 50%;
+    --primary-foreground: 240 10% 4%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 180 100% 50%;
+    --secondary-foreground: 240 10% 4%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 8% 12%;
+    --muted-foreground: 180 20% 60%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 60 100% 50%;
+    --accent-foreground: 240 10% 4%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 240 20% 20%;
+    --input: 240 20% 15%;
+    --ring: 300 100% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Neon Color Palette */
+    --neon-pink: 300 100% 50%;
+    --neon-cyan: 180 100% 50%;
+    --neon-green: 120 100% 50%;
+    --neon-yellow: 60 100% 50%;
+    --neon-orange: 30 100% 50%;
+    --neon-purple: 270 100% 60%;
+    --neon-blue: 210 100% 60%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Gradients */
+    --gradient-neon: linear-gradient(135deg, hsl(var(--neon-pink)), hsl(var(--neon-cyan)));
+    --gradient-track: linear-gradient(90deg, hsl(var(--neon-purple) / 0.3), hsl(var(--neon-blue) / 0.3));
+    --gradient-game: linear-gradient(180deg, hsl(240 10% 4%), hsl(240 15% 8%));
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Shadows & Glows */
+    --glow-pink: 0 0 20px hsl(var(--neon-pink) / 0.6), 0 0 40px hsl(var(--neon-pink) / 0.4);
+    --glow-cyan: 0 0 20px hsl(var(--neon-cyan) / 0.6), 0 0 40px hsl(var(--neon-cyan) / 0.4);
+    --glow-green: 0 0 20px hsl(var(--neon-green) / 0.6), 0 0 40px hsl(var(--neon-green) / 0.4);
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Game Elements */
+    --car-trail: linear-gradient(90deg, transparent, hsl(var(--neon-cyan) / 0.8), transparent);
+    --track-glow: 0 0 10px hsl(var(--neon-purple) / 0.5);
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Animations */
+    --pulse-duration: 2s;
+    --drift-duration: 0.3s;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 240 8% 8%;
+    --sidebar-foreground: 180 100% 90%;
+    --sidebar-primary: 300 100% 50%;
+    --sidebar-primary-foreground: 240 10% 4%;
+    --sidebar-accent: 240 8% 12%;
+    --sidebar-accent-foreground: 180 100% 90%;
+    --sidebar-border: 240 20% 20%;
+    --sidebar-ring: 300 100% 50%;
   }
 
   .dark {
@@ -100,6 +121,131 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
+    background: var(--gradient-game);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Neon Button Variants */
+  .btn-neon {
+    @apply relative px-6 py-3 rounded-lg font-bold uppercase tracking-wider transition-all duration-300;
+    @apply border-2 border-current bg-transparent text-current;
+    box-shadow: var(--glow-cyan);
+    animation: pulse-glow var(--pulse-duration) infinite alternate;
+  }
+
+  .btn-neon:hover {
+    @apply scale-105;
+    box-shadow: var(--glow-pink);
+  }
+
+  .btn-neon-pink {
+    @apply btn-neon;
+    color: hsl(var(--neon-pink));
+    border-color: hsl(var(--neon-pink));
+    box-shadow: var(--glow-pink);
+  }
+
+  .btn-neon-cyan {
+    @apply btn-neon;
+    color: hsl(var(--neon-cyan));
+    border-color: hsl(var(--neon-cyan));
+    box-shadow: var(--glow-cyan);
+  }
+
+  .btn-neon-green {
+    @apply btn-neon;
+    color: hsl(var(--neon-green));
+    border-color: hsl(var(--neon-green));
+    box-shadow: var(--glow-green);
+  }
+
+  /* Game Elements */
+  .track-segment {
+    @apply relative;
+    background: var(--gradient-track);
+    box-shadow: var(--track-glow);
+  }
+
+  .car-element {
+    @apply relative transition-transform duration-300;
+    filter: drop-shadow(var(--glow-cyan));
+  }
+
+  .car-trail {
+    @apply absolute inset-0 opacity-60;
+    background: var(--car-trail);
+    animation: trail-pulse 0.5s infinite alternate;
+  }
+
+  .neon-text {
+    @apply font-bold tracking-wider;
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    animation: text-glow var(--pulse-duration) infinite alternate;
+  }
+
+  .game-ui {
+    @apply absolute z-10 text-white font-mono;
+    text-shadow: 0 0 10px hsl(var(--neon-cyan)), 0 0 20px hsl(var(--neon-cyan));
+  }
+
+  .leaderboard-entry {
+    @apply relative p-4 rounded-lg border border-current;
+    background: linear-gradient(90deg, transparent, hsl(var(--neon-purple) / 0.1), transparent);
+    transition: all 0.3s ease;
+  }
+
+  .leaderboard-entry:hover {
+    @apply scale-105;
+    box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.3);
+  }
+}
+
+@layer utilities {
+  /* Animations */
+  @keyframes pulse-glow {
+    0% { box-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
+    100% { box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor; }
+  }
+
+  @keyframes text-glow {
+    0% { text-shadow: 0 0 5px currentColor; }
+    100% { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+  }
+
+  @keyframes trail-pulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.8; }
+  }
+
+  @keyframes drift-left {
+    0% { transform: translateX(0) rotate(0deg); }
+    50% { transform: translateX(-10px) rotate(-15deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+  }
+
+  @keyframes drift-right {
+    0% { transform: translateX(0) rotate(0deg); }
+    50% { transform: translateX(10px) rotate(15deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+  }
+
+  @keyframes track-scroll {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  .animate-drift-left {
+    animation: drift-left var(--drift-duration) ease-in-out;
+  }
+
+  .animate-drift-right {
+    animation: drift-right var(--drift-duration) ease-in-out;
+  }
+
+  .animate-track-scroll {
+    animation: track-scroll 2s linear infinite;
   }
 }
