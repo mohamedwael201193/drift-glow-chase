@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { createWalletClient, http } from "viem";
+import { sepolia } from "viem/chains";
+import { submitOnchainScore, fetchMonadUsername } from "@/lib/monad";
 
 interface GameOverProps {
   score: number;
@@ -17,13 +21,34 @@ export default function GameOver({ score, onRestart, onViewLeaderboard }: GameOv
   const [walletAddress, setWalletAddress] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [needsRegistration, setNeedsRegistration] = useState(false);
   const { toast } = useToast();
+  const { user, authenticated } = usePrivy();
+  const { wallets } = useWallets();
+
+  useEffect(() => {
+    if (authenticated && user && wallets.length > 0) {
+      const wallet = wallets[0];
+      setWalletAddress(wallet.address);
+      
+      // Fetch username from Monad Games ID
+      fetchMonadUsername(wallet.address).then((monadUsername) => {
+        if (monadUsername) {
+          setUsername(monadUsername);
+        } else {
+          setNeedsRegistration(true);
+          // Fallback to shortened wallet address
+          setUsername(`${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`);
+        }
+      });
+    }
+  }, [authenticated, user, wallets]);
 
   const handleSubmit = async () => {
-    if (!username.trim()) {
+    if (!username.trim() || !walletAddress) {
       toast({
-        title: "Username Required",
-        description: "Please enter a username to submit your score.",
+        title: "Authentication Required",
+        description: "Please connect your Monad Games ID to submit your score.",
         variant: "destructive"
       });
       return;
@@ -35,7 +60,7 @@ export default function GameOver({ score, onRestart, onViewLeaderboard }: GameOv
       const { data: existingScore } = await supabase
         .from('scores')
         .select('score')
-        .eq('username', username.trim())
+        .eq('wallet_address', walletAddress)
         .single();
 
       if (existingScore && existingScore.score >= score) {
@@ -48,24 +73,45 @@ export default function GameOver({ score, onRestart, onViewLeaderboard }: GameOv
         return;
       }
 
-      // Submit or update score
-      const { error } = await supabase
+      // Submit to Supabase
+      const { error: supabaseError } = await supabase
         .from('scores')
         .upsert({
           username: username.trim(),
-          wallet_address: walletAddress.trim() || username.trim(),
+          wallet_address: walletAddress,
           score: score
         }, {
-          onConflict: 'username'
+          onConflict: 'wallet_address'
         });
 
-      if (error) throw error;
+      if (supabaseError) throw supabaseError;
+
+      // Submit onchain
+      if (wallets.length > 0) {
+        const wallet = wallets[0];
+        const walletClient = createWalletClient({
+          chain: sepolia,
+          transport: http('https://testnet-rpc.monad.xyz'),
+          account: wallet.address as `0x${string}`,
+        });
+
+        const onchainResult = await submitOnchainScore(walletClient, walletAddress, score);
+        
+        if (onchainResult.success) {
+          toast({
+            title: "Score Submitted!",
+            description: `Your distance of ${score}m has been recorded onchain and locally.`,
+          });
+        } else {
+          toast({
+            title: "Partial Success",
+            description: "Score saved locally but onchain submission failed. You can try again later.",
+            variant: "destructive"
+          });
+        }
+      }
 
       setSubmitted(true);
-      toast({
-        title: "Score Submitted!",
-        description: `Your distance of ${score}m has been recorded.`,
-      });
     } catch (error) {
       console.error('Error submitting score:', error);
       toast({
@@ -108,7 +154,31 @@ export default function GameOver({ score, onRestart, onViewLeaderboard }: GameOv
           </p>
         </div>
 
-        {!submitted ? (
+        {!authenticated ? (
+          <div className="space-y-4">
+            <div className="text-neon-yellow text-center mb-4">
+              Connect your Monad Games ID to submit your score
+            </div>
+            <Button
+              onClick={() => window.open('https://monad-games-id-site.vercel.app/', '_blank')}
+              className="w-full btn-neon-cyan"
+            >
+              Sign in with Monad Games ID
+            </Button>
+          </div>
+        ) : needsRegistration ? (
+          <div className="space-y-4">
+            <div className="text-neon-yellow text-center mb-4">
+              Complete your Monad Games ID registration to submit scores
+            </div>
+            <Button
+              onClick={() => window.open('https://monad-games-id-site.vercel.app/', '_blank')}
+              className="w-full btn-neon-cyan"
+            >
+              Complete Registration
+            </Button>
+          </div>
+        ) : !submitted ? (
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-neon-green font-mono text-sm">
@@ -116,24 +186,21 @@ export default function GameOver({ score, onRestart, onViewLeaderboard }: GameOv
               </label>
               <Input
                 type="text"
-                placeholder="Enter your name"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="bg-background/50 border-neon-cyan/50 text-foreground placeholder:text-muted-foreground"
-                maxLength={20}
+                disabled
+                className="bg-background/50 border-neon-cyan/50 text-foreground"
               />
             </div>
             
             <div className="space-y-2">
               <label className="text-neon-purple font-mono text-sm">
-                Wallet Address (Optional)
+                Wallet Address
               </label>
               <Input
                 type="text"
-                placeholder="0x... (optional)"
                 value={walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
-                className="bg-background/50 border-neon-purple/50 text-foreground placeholder:text-muted-foreground"
+                disabled
+                className="bg-background/50 border-neon-purple/50 text-foreground"
               />
             </div>
 

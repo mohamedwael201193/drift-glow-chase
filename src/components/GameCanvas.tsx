@@ -186,12 +186,17 @@ export default function GameCanvas({ onGameOver }: GameCanvasProps) {
           <p className="text-xl text-neon-yellow mb-8 font-mono">
             Use ← → arrows or A/D to drift • Stay on track • Beat the distance record
           </p>
-          <button
-            onClick={startGame}
-            className="btn-neon-cyan text-xl px-8 py-4"
-          >
-            Press SPACE to Start
-          </button>
+          <div className="space-y-4">
+            <button
+              onClick={startGame}
+              className="btn-neon-cyan text-xl px-8 py-4 block mx-auto"
+            >
+              Press SPACE to Start
+            </button>
+            <p className="text-neon-purple text-lg font-mono text-center">
+              Connect Monad Games ID to save your scores globally
+            </p>
+          </div>
         </div>
       </div>
     );

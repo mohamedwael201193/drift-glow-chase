@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fetchMonadLeaderboard } from "@/lib/monad";
 
 interface Score {
   username: string;
@@ -27,14 +28,35 @@ export default function Leaderboard({ onBackToGame }: LeaderboardProps) {
 
   const fetchScores = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch Supabase scores
+      const { data: supabaseScores, error } = await supabase
         .from('scores')
         .select('*')
         .order('score', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
-      setScores(data || []);
+
+      // Fetch Monad leaderboard
+      const monadScores = await fetchMonadLeaderboard();
+
+      // Merge and deduplicate scores (prioritize higher scores for same wallet)
+      const allScores = [...(supabaseScores || []), ...monadScores];
+      const scoreMap = new Map();
+
+      allScores.forEach((score) => {
+        const key = score.wallet_address;
+        if (!scoreMap.has(key) || scoreMap.get(key).score < score.score) {
+          scoreMap.set(key, score);
+        }
+      });
+
+      // Convert back to array and sort
+      const mergedScores = Array.from(scoreMap.values())
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 20);
+
+      setScores(mergedScores);
     } catch (error) {
       console.error('Error fetching scores:', error);
       toast({
@@ -100,7 +122,7 @@ export default function Leaderboard({ onBackToGame }: LeaderboardProps) {
             LEADERBOARD
           </h1>
           <p className="text-neon-yellow text-xl font-mono">
-            Top Drift Runners • Best Distances
+            Global Leaderboard • Supabase + Monad Chain
           </p>
         </div>
 
